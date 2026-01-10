@@ -25,7 +25,10 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 gmaps_client = googlemaps.Client(key=os.getenv("GOOGLE_MAPS_API_KEY"))
 
 def two_letter_state_code(state_name: str) -> str:
-    state_codes = json.load(open("state_codes.json"))
+    # Get the directory where this Python file is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    state_codes_path = os.path.join(current_dir, "state_codes.json")
+    state_codes = json.load(open(state_codes_path))
     state_codes = {v: k for k, v in state_codes.items()}
     try:
         return state_codes[state_name]
