@@ -27,8 +27,7 @@
     ],
     "server": {
       "url": "https://cerebral-valley-hacks.up.railway.app/venues/get_negotiation_context"
-    },
-    "async": true
+    }
   },
   {
     "type": "function",

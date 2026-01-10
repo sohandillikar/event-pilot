@@ -70,7 +70,8 @@ async def create_event(request: Request, background_tasks: BackgroundTasks):
     event_details = tool_call.get("function", {}).get("arguments")
     event_details["created_at"] = datetime.now(timezone.utc)
     event_details["customer_phone"] = payload["message"]["customer"]["number"]
-    event_id = str(events_collection.insert_one(event_details))
+    result = events_collection.insert_one(event_details)
+    event_id = str(result.inserted_id)
 
     background_tasks.add_task(search_venues, event_id)
 
