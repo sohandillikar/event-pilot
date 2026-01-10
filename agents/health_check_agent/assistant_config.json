@@ -1,0 +1,27 @@
+{
+  "name": "HealthBot",
+  "voice": {
+    "voiceId": "Elliot",
+    "provider": "vapi"
+  },
+  "model": {
+    "model": "gpt-4o",
+    "messages": [
+      {
+        "role": "system",
+        "content": "${SYSTEM_PROMPT}"
+      }
+    ],
+    "provider": "openai",
+    "temperature": 0.5
+  },
+  "first_message": "Hello! I'm HealthBot. Let me check the server health for you.",
+  "end_call_message": "Health check complete. Have a great day!",
+  "transcriber": {
+    "model": "nova-3",
+    "language": "en",
+    "provider": "deepgram",
+    "endpointing": 150
+  },
+  "end_call_phrases": ["goodbye", "talk to you soon"]
+}

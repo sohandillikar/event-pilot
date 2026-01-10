@@ -3,9 +3,11 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
+
+from agents.venue_searching_agent.venue_searching_agent import VenueSearchingAgent
 
 load_dotenv()
 
@@ -23,6 +25,35 @@ mongo_client = MongoClient(os.getenv("MONGO_CONNECTION_STRING"))
 mongo_client.admin.command("ping")
 events_db = mongo_client["events_db"]
 events_collection = events_db["events"]
+
+
+def search_venues(event_id: str):
+    """Search for venues that best suit an event and save them to MongoDB Atlas."""
+    print(f"Searching for venues for event {event_id}")
+    agent = VenueSearchingAgent(event_id)
+    venues = agent.search_venues()
+    agent.save_venues(venues)
+    venues = agent.extract_venue_contact_info()
+    agent.save_venues(venues)
+    print(f"Found {len(venues)} venues for event {event_id}")
+
+
+@app.post("/events/create")
+async def create_event(request: Request, background_tasks: BackgroundTasks):
+    """Create and save a new event in MongoDB Atlas."""
+    payload = await request.json()
+    tool_call = payload.get("message", {}).get("toolCalls", [{}])[0]
+    tool_call_id = tool_call.get("id")
+    
+    event_details = tool_call.get("function", {}).get("arguments")
+    event_details["created_at"] = datetime.now(timezone.utc)
+    event_details["customer_phone"] = payload["message"]["customer"]["number"]
+    event_id = str(events_collection.insert_one(event_details))
+
+    background_tasks.add_task(search_venues, event_id)
+
+    result = {"status": "success", "event_id": event_id}
+    return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
 @app.post("/get_current_datetime")

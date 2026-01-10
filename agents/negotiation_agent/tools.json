@@ -1,0 +1,118 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_negotiation_context",
+      "strict": true,
+      "description": "Use this tool at the beginning of the call to retrieve the event details that you'll be negotiating about. This includes the event name, dates, number of attendees, budget, and any required amenities. You need this information to have an informed conversation with the venue.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    "messages": [
+      {
+        "type": "request-start",
+        "content": "Let me pull up the event details."
+      },
+      {
+        "type": "request-complete",
+        "content": "Got it, I have the event information."
+      },
+      {
+        "type": "request-failed",
+        "content": "I'm having trouble accessing the event details. Let me try again."
+      }
+    ],
+    "server": {
+      "url": "https://cerebral-valley-hacks.up.railway.app/venues/get_negotiation_context"
+    },
+    "async": true
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "save_negotiation_result",
+      "strict": true,
+      "description": "Use this tool after you have finished discussing availability, capacity, pricing, and amenities with the venue. This tool saves the complete negotiation outcome to the database. Call this tool once you have gathered all the information from your conversation with the venue representative, including whether they're available, their pricing, and the status of negotiations.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "venue_name": {
+            "description": "The name of the venue you just spoke with",
+            "type": "string"
+          },
+          "is_available": {
+            "description": "Whether the venue is available for the event dates",
+            "type": "boolean"
+          },
+          "capacity_confirmed": {
+            "description": "Whether the venue confirmed they can accommodate the number of attendees",
+            "type": "boolean"
+          },
+          "quoted_price": {
+            "description": "The price quoted by the venue in dollars (USD). If they didn't provide a specific number, use 0.",
+            "type": "integer"
+          },
+          "final_price": {
+            "description": "The final negotiated price in dollars (USD) if different from the quoted price. Leave empty if no negotiation occurred or price remained the same.",
+            "type": "integer"
+          },
+          "negotiation_status": {
+            "description": "The current status of the negotiation with this venue",
+            "type": "string",
+            "enum": [
+              "price_agreed",
+              "negotiating",
+              "venue_firm",
+              "not_available",
+              "capacity_insufficient",
+              "no_answer"
+            ]
+          },
+          "amenities_offered": {
+            "description": "List of amenities the venue confirmed they can provide (optional)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "description": "Any additional important details, conditions, special requirements, or concerns mentioned during the conversation (optional)",
+            "type": "string"
+          },
+          "requires_followup": {
+            "description": "Whether this venue needs a follow-up call (e.g., venue asked to call back, left voicemail, or negotiations are ongoing)",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "venue_name",
+          "is_available",
+          "capacity_confirmed",
+          "quoted_price",
+          "negotiation_status",
+          "requires_followup"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "type": "request-start",
+        "content": "One moment while I save these details."
+      },
+      {
+        "type": "request-complete",
+        "content": "Perfect! I've recorded all the information from our conversation."
+      },
+      {
+        "type": "request-failed",
+        "content": "I'm having trouble saving the information. Let me try again."
+      }
+    ],
+    "server": {
+      "url": "https://cerebral-valley-hacks.up.railway.app/venues/save_negotiation_result"
+    }
+  }
+]

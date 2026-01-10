@@ -1,0 +1,27 @@
+{
+  "name": "Alex",
+  "voice": {
+    "voiceId": "Elliot",
+    "provider": "vapi"
+  },
+  "model": {
+    "model": "gpt-4o",
+    "messages": [
+      {
+        "role": "system",
+        "content": "${SYSTEM_PROMPT}"
+      }
+    ],
+    "provider": "openai",
+    "temperature": 0.5
+  },
+  "first_message": "Hello, this is Alex calling from EventPilot regarding a corporate event. May I speak with someone about venue availability and pricing?",
+  "end_call_message": "Thank you for your time. We'll review our options and be in touch soon.",
+  "transcriber": {
+    "model": "nova-3",
+    "language": "en",
+    "provider": "deepgram",
+    "endpointing": 150
+  },
+  "end_call_phrases": ["goodbye", "talk to you soon"]
+}

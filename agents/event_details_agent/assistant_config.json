@@ -1,0 +1,27 @@
+{
+  "name": "Riley",
+  "voice": {
+    "voiceId": "Elliot",
+    "provider": "vapi"
+  },
+  "model": {
+    "model": "gpt-4o",
+    "messages": [
+      {
+        "role": "system",
+        "content": "${SYSTEM_PROMPT}"
+      }
+    ],
+    "provider": "openai",
+    "temperature": 0.5
+  },
+  "first_message": "Thank you for calling EventPilot. This is Riley, your event planning assistant. How may I help you today?",
+  "end_call_message": "Thank you for calling EventPilot! I'll be in touch with you soon with venue recommendations. Have a great day!",
+  "transcriber": {
+    "model": "nova-3",
+    "language": "en",
+    "provider": "deepgram",
+    "endpointing": 150
+  },
+  "end_call_phrases": ["goodbye", "talk to you soon"]
+}

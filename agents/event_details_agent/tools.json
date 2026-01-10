@@ -1,0 +1,125 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "save_event_details",
+      "strict": true,
+      "description": "Use this tool at the end of the call, once you have collected all the required event details from the customer. This tool saves the complete event information to the database. Only call this tool after you have gathered all the following information: customer name, company name, customer role, event name, start date, end date, number of attendees, venue type, location city, location state, and budget. Optional fields like required amenities and additional details can be included if provided by the customer.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "budget": {
+            "description": "The budget for the event in dollars",
+            "type": "integer"
+          },
+          "end_date": {
+            "description": "The end date of the event in YYYY-MM-DD format",
+            "type": "string"
+          },
+          "event_name": {
+            "description": "The name of the event",
+            "type": "string"
+          },
+          "start_date": {
+            "description": "The start date of the event in YYYY-MM-DD format",
+            "type": "string"
+          },
+          "venue_type": {
+            "description": "The type of venue for the event",
+            "type": "string",
+            "enum": [
+              "Hotel",
+              "Resort",
+              "Restaurant",
+              "Bar",
+              "Nightclub",
+              "Event Space",
+              "Vacation Rental"
+            ]
+          },
+          "company_name": {
+            "description": "The name of the customers's company",
+            "type": "string"
+          },
+          "customer_name": {
+            "description": "The name of the customer requesting the event",
+            "type": "string"
+          },
+          "customer_role": {
+            "description": "The customer's role or occupation at their company",
+            "type": "string"
+          },
+          "location_city": {
+            "description": "The city where the event will be hosted",
+            "type": "string"
+          },
+          "location_state": {
+            "description": "The state where the event will be hosted (full state name)",
+            "type": "string"
+          },
+          "additional_details": {
+            "description": "Any additional details, special requirements, or preferences for the event (optional)",
+            "type": "string"
+          },
+          "required_amenities": {
+            "description": "List of required amenities or accommodations (optional)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "number_of_attendees": {
+            "description": "The number of people expected to attend the event",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "customer_name",
+          "company_name",
+          "customer_role",
+          "event_name",
+          "start_date",
+          "end_date",
+          "number_of_attendees",
+          "venue_type",
+          "location_city",
+          "location_state",
+          "budget"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "type": "request-start",
+        "content": "One second while I quickly save your event details."
+      },
+      {
+        "type": "request-complete",
+        "content": "Awesome! I've saved them for you."
+      },
+      {
+        "type": "request-failed",
+        "content": "Oh no! Looks like there's an issue on our end with saving your event details."
+      }
+    ],
+    "server": {
+      "url": "https://cerebral-valley-hacks.up.railway.app/events/create"
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_current_datetime",
+      "description": "Use this tool at the beginning of the call to get the current date and time. This will help you understand the correct year and date context when users mention event start and end dates.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    "server": {
+      "url": "https://cerebral-valley-hacks.up.railway.app/get_current_datetime"
+    },
+    "async": true
+  }
+]
