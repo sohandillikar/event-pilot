@@ -91,6 +91,13 @@ async def get_negotiation_context(request: Request):
         "venues.contact_phone_number": recipient_phone
     })
 
+    if not event:
+        result = {
+            "status": "error",
+            "message": "No event found for this phone number"
+        }
+        return {"results": [{"toolCallId": tool_call_id, "result": result}]}
+
     print(event)
     
     matching_venue = None
@@ -99,11 +106,23 @@ async def get_negotiation_context(request: Request):
             matching_venue = venue
             break
 
-    del event["venues"]
+    # Convert MongoDB document to JSON-serializable format
+    event_details = dict(event)
+    
+    # Convert ObjectId to string
+    if "_id" in event_details:
+        event_details["_id"] = str(event_details["_id"])
+    
+    # Convert datetime to ISO format string
+    if "created_at" in event_details and isinstance(event_details["created_at"], datetime):
+        event_details["created_at"] = event_details["created_at"].isoformat()
+    
+    # Remove venues from event_details
+    del event_details["venues"]
     
     result = {
         "status": "success",
-        "event_details": event,
+        "event_details": event_details,
         "venue_details": matching_venue
     }
 

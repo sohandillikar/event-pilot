@@ -7,7 +7,7 @@ load_dotenv()
 
 client = Vapi(token=os.getenv("VAPI_API_KEY"))
 
-ASSISTANT_ID = "5906decd-0226-4def-a88c-e20ad59a41cb"
+ASSISTANT_ID = "79f254d0-c534-45de-9f0f-8085a8bc4b2d"
 PHONE_NUMBER_ID = "59974037-e0bd-4f56-9115-b22345365434"
 CUSTOMER_NUMBER = "+14083388934"
 
