@@ -39,8 +39,8 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "venue_name": {
-            "description": "The name of the venue you just spoke with",
+          "event_id": {
+            "description": "The ID of the event that you received from the get_negotiation_context tool",
             "type": "string"
           },
           "is_available": {
@@ -81,19 +81,13 @@
           "notes": {
             "description": "Any additional important details, conditions, special requirements, or concerns mentioned during the conversation (optional)",
             "type": "string"
-          },
-          "requires_followup": {
-            "description": "Whether this venue needs a follow-up call (e.g., venue asked to call back, left voicemail, or negotiations are ongoing)",
-            "type": "boolean"
           }
         },
         "required": [
-          "venue_name",
           "is_available",
           "capacity_confirmed",
           "quoted_price",
-          "negotiation_status",
-          "requires_followup"
+          "negotiation_status"
         ]
       }
     },
