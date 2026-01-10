@@ -10,6 +10,11 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 
+from openai import OpenAI
+
+from vonage import Vonage, Auth
+from vonage_sms import SmsMessage
+
 from vapi import Vapi
 from agents.venue_searching_agent.venue_searching_agent import VenueSearchingAgent
 
@@ -24,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+vonage_client = Vonage(auth=Auth(api_key=os.getenv("VONAGE_API_KEY"), api_secret=os.getenv("VONAGE_API_SECRET")))
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def get_mongo_client():
     """Get MongoDB client with lazy initialization."""
@@ -55,6 +63,31 @@ def negotiate_with_venues(venues: list[dict]):
         return # TODO: Remove this for production
 
 
+def send_sms(event_id: str, to: str):
+    events_collection = get_events_collection()
+    event = events_collection.find_one({"_id": ObjectId(event_id)})
+    venues = [v for v in event["venues"] if "negotiation_result" in v]
+    del event["_id"]
+    del event["created_at"]
+    del event["venues"]
+
+    SYSTEM_PROMPT = "You are Riley, an event planning assistant. Given event details and negotiation results from speaking to venues, create an SMS message to the customer that summarizes the negotiation results. IMPORTANT: Your message should be in plain text format, not markdown."
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": f"Event details: {event}, Negotiation results: {venues}"}
+    ]
+    response = openai_client.responses.create(model="gpt-4o-mini", input=messages)
+    sms_message = response.output_text
+
+    message = SmsMessage(
+        from_=os.getenv("VONAGE_PHONE_NUMEBR"),
+        to=to,
+        text=sms_message
+    )
+    vonage_client.sms.send(message)
+    print(f"SMS sent to {to}: {sms_message}")
+
+
 def search_venues(event_id: str):
     """Search for venues that best suit an event and save them to MongoDB Atlas."""
     print(f"Searching for venues for event {event_id}")
@@ -66,6 +99,8 @@ def search_venues(event_id: str):
     print(f"Found {len(venues)} venues for event {event_id}")
 
     negotiate_with_venues(venues)
+
+    send_sms(event_id, agent.event.get("customer_phone"))
 
 
 @app.post("/events/create")

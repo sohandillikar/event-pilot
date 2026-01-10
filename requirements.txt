@@ -10,3 +10,4 @@ pydantic-settings==2.10.1
 pydantic_core==2.33.2
 googlemaps==4.10.0
 phonenumbers==9.0.21
+vonage==4.7.2
