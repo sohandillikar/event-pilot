@@ -148,7 +148,7 @@ class VenueSearchingAgent:
             for i, result in enumerate(extract_response["results"]):
                 venues = self._extract_best_venues(venue_type, city, state, attendees, days, budget, result["raw_content"])
                 best_venues.extend(venues.model_dump()["venues"])
-                print(f"Finished LLM extraction for {i+1}/{len(urls)} urls")
+                print(f"Finished LLM extraction for {result['url']} - {i+1}/{len(urls)}")
 
         return best_venues
 
