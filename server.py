@@ -79,7 +79,7 @@ async def create_event(request: Request, background_tasks: BackgroundTasks):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
-@app.post("/get_negotiation_context")
+@app.post("/venues/get_negotiation_context")
 async def get_negotiation_context(request: Request):
     """Returns the event details and the venue details for the given venue contact phone number."""
     payload = await request.json()
@@ -112,7 +112,7 @@ async def get_negotiation_context(request: Request):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
-@app.post("/save_negotiation_result")
+@app.post("/venues/save_negotiation_result")
 async def save_negotiation_result(request: Request):
     """Saves the negotiation result to the database."""
     payload = await request.json()
