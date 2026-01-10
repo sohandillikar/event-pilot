@@ -25,10 +25,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-mongo_client = MongoClient(os.getenv("MONGO_CONNECTION_STRING"))
-mongo_client.admin.command("ping")
-events_db = mongo_client["events_db"]
-events_collection = events_db["events"]
+def get_mongo_client():
+    """Get MongoDB client with lazy initialization."""
+    connection_string = os.getenv("MONGO_CONNECTION_STRING")
+    if not connection_string:
+        raise ValueError("MONGO_CONNECTION_STRING environment variable is not set")
+    return MongoClient(connection_string)
+
+def get_events_collection():
+    """Get events collection with lazy initialization."""
+    client = get_mongo_client()
+    events_db = client["events_db"]
+    return events_db["events"]
 
 vapi_client = Vapi(token=os.getenv("VAPI_API_KEY"))
 
@@ -70,6 +78,7 @@ async def create_event(request: Request, background_tasks: BackgroundTasks):
     event_details = tool_call.get("function", {}).get("arguments")
     event_details["created_at"] = datetime.now(timezone.utc)
     event_details["customer_phone"] = payload["message"]["customer"]["number"]
+    events_collection = get_events_collection()
     result = events_collection.insert_one(event_details)
     event_id = str(result.inserted_id)
 
@@ -87,6 +96,7 @@ async def get_negotiation_context(request: Request):
     tool_call_id = tool_call.get("id")
     recipient_phone = payload["message"]["customer"]["number"]
     
+    events_collection = get_events_collection()
     event = events_collection.find_one({
         "venues.contact_phone_number": recipient_phone
     })
@@ -141,6 +151,7 @@ async def save_negotiation_result(request: Request):
     negotiation_result = tool_call.get("function", {}).get("arguments")
     recipient_phone = payload["message"]["customer"]["number"]
 
+    events_collection = get_events_collection()
     events_collection.update_one(
         {
             "_id": ObjectId(negotiation_result["event_id"]),
@@ -167,8 +178,12 @@ async def get_current_datetime(request: Request):
 @app.get("/mongo_health")
 def mongo_health_check():
     """Health check endpoint to verify MongoDB connection."""
-    mongo_client.admin.command("ping")
-    return {"status": "healthy", "database": "connected"}
+    try:
+        mongo_client = get_mongo_client()
+        mongo_client.admin.command("ping")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
 
 @app.post("/vapi_health")

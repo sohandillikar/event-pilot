@@ -15,10 +15,18 @@ from pydantic import BaseModel, Field
 
 load_dotenv()
 
-mongo_client = MongoClient(os.getenv("MONGO_CONNECTION_STRING"))
-mongo_client.admin.command("ping")
-events_db = mongo_client["events_db"]
-events_collection = events_db["events"]
+def get_mongo_client():
+    """Get MongoDB client with lazy initialization."""
+    connection_string = os.getenv("MONGO_CONNECTION_STRING")
+    if not connection_string:
+        raise ValueError("MONGO_CONNECTION_STRING environment variable is not set")
+    return MongoClient(connection_string)
+
+def get_events_collection():
+    """Get events collection with lazy initialization."""
+    client = get_mongo_client()
+    events_db = client["events_db"]
+    return events_db["events"]
 
 tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -81,7 +89,10 @@ class VenueSearchResponse(BaseModel):
 class VenueSearchingAgent:
     def __init__(self, event_id: str):
         self.event_id = ObjectId(event_id)
-        self.event = events_collection.find_one({"_id": self.event_id})
+        self.events_collection = get_events_collection()
+        self.event = self.events_collection.find_one({"_id": self.event_id})
+        if not self.event:
+            raise ValueError(f"Event with id {event_id} not found")
         self.venues = self.event.get("venues", [])
 
     def _extract_best_venues(self, venue_type: str, city: str, state: str, attendees: int, days: int, budget: int, raw_content: str):
@@ -156,10 +167,10 @@ class VenueSearchingAgent:
     def save_venues(self, venues: list[dict]):
         """Save the venues to MongoDB Atlas."""
         venues_to_save = [v for v in venues if v.get("url") and v.get("url").startswith("http")]
-        events_collection.update_one(
+        self.events_collection.update_one(
             {"_id": self.event_id},
             {"$set": {"venues": venues_to_save}}
         )
-        self.event = events_collection.find_one({"_id": self.event_id})
+        self.event = self.events_collection.find_one({"_id": self.event_id})
         self.venues = self.event["venues"]
         return self.venues
