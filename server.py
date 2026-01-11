@@ -59,7 +59,7 @@ def negotiate_with_venues(venues: list[dict]):
             customer={"number": venue["contact_phone_number"]},
         )
         print(f"Call created - {call.id}")
-        time.sleep(150)
+        # time.sleep(150)
         return # TODO: Remove this for production
 
 
@@ -100,7 +100,7 @@ def search_venues(event_id: str):
 
     negotiate_with_venues(venues)
 
-    send_sms(event_id, agent.event.get("customer_phone"))
+    # send_sms(event_id, agent.event.get("customer_phone"))
 
 
 @app.get("/get_events")
@@ -217,6 +217,11 @@ async def save_negotiation_result(request: Request):
             "venues.$.negotiation_result": negotiation_result
         }}
     )
+
+    event = events_collection.find_one({
+        "_id": ObjectId(negotiation_result["event_id"])
+    })
+    send_sms(str(event["_id"]), event["customer_phone"])
 
     result = {"status": "success", "message": "Negotiation result saved successfully"}
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
