@@ -7,9 +7,9 @@ load_dotenv()
 
 client = Vapi(token=os.getenv("VAPI_API_KEY"))
 
-ASSISTANT_ID = "b962ebbe-5599-4b66-a236-01a7ad27b136"
-PHONE_NUMBER_ID = "67b07df0-e27f-4201-98aa-b57a1f0a5aad"
-CUSTOMER_NUMBER = "+14083388934"
+ASSISTANT_ID = "" # TODO: Replace with the actual assistant id
+PHONE_NUMBER_ID = "" # TODO: Replace with the actual phone number id
+CUSTOMER_NUMBER = "" # TODO: Replace with the actual customer number
 
 call = client.calls.create(
     assistant_id=ASSISTANT_ID,

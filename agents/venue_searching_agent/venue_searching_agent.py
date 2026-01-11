@@ -54,8 +54,6 @@ def convert_phone_number_to_e164(phone_number, country_code='US'):
         return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
 
 def get_phone_number(place_query):
-    # TODO: Remove this for production
-    return "+14083388934"
     place_id = get_gmaps_place_id(place_query)
     place = gmaps_client.place(place_id=place_id, fields=['international_phone_number', 'formatted_phone_number'])["result"]
     intl_phone = place.get('international_phone_number')

@@ -59,8 +59,6 @@ def negotiate_with_venues(venues: list[dict]):
             customer={"number": venue["contact_phone_number"]},
         )
         print(f"Call created - {call.id}")
-        time.sleep(150)
-        return # TODO: Remove this for production
 
 
 def send_sms(event_id: str, to: str):
