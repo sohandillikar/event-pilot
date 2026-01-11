@@ -103,6 +103,27 @@ def search_venues(event_id: str):
     send_sms(event_id, agent.event.get("customer_phone"))
 
 
+@app.get("/get_events")
+async def get_events():
+    """Returns all events in the database."""
+    events_collection = get_events_collection()
+    events_cursor = events_collection.find()
+    
+    # Convert MongoDB documents to JSON-serializable format
+    events = []
+    for event in events_cursor:
+        event_dict = dict(event)
+        # Convert ObjectId to string
+        if "_id" in event_dict:
+            event_dict["_id"] = str(event_dict["_id"])
+        # Convert datetime to ISO format string
+        if "created_at" in event_dict and isinstance(event_dict["created_at"], datetime):
+            event_dict["created_at"] = event_dict["created_at"].isoformat()
+        events.append(event_dict)
+    
+    return {"events": events}
+
+
 @app.post("/events/create")
 async def create_event(request: Request, background_tasks: BackgroundTasks):
     """Create and save a new event in MongoDB Atlas."""
