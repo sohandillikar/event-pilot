@@ -59,7 +59,7 @@ def negotiate_with_venues(venues: list[dict]):
             customer={"number": venue["contact_phone_number"]},
         )
         print(f"Call created - {call.id}")
-        time.sleep(1)
+        time.sleep(120)
         return # TODO: Remove this for production
 
 
