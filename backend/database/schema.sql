@@ -1,0 +1,6 @@
+CREATE TABLE public.users (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE
+);
