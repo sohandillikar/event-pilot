@@ -1,11 +1,27 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/hooks/use-auth";
+import { signInWithGoogle } from "@/lib/actions/auth";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 export function Hero() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const handleGetStarted = () => {
-    // TODO: Implement get started functionality
-    console.log("Get Started clicked");
+    if (user) {
+      // User is already logged in, redirect to dashboard
+      router.push("/dashboard");
+    } else {
+      // User not logged in, trigger Google sign in
+      startTransition(async () => {
+        await signInWithGoogle();
+      });
+    }
   };
 
   return (
@@ -28,8 +44,18 @@ export function Hero() {
 
         {/* CTA Button */}
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button onClick={handleGetStarted} size="lg" className="text-base">
-            Get Started
+          <Button
+            onClick={handleGetStarted}
+            size="lg"
+            className="text-base"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <>
+                <Spinner className="mr-2" />
+                Loading...
+              </>
+            ) : "Get Started"}
           </Button>
         </div>
 

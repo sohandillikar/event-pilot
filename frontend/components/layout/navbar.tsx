@@ -1,11 +1,25 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/hooks/use-auth";
+import { signInWithGoogle, signOut } from "@/lib/actions/auth";
+import { useTransition } from "react";
 
 export function Navbar() {
+  const { user, loading } = useAuth();
+  const [isPending, startTransition] = useTransition();
+
   const handleLoginClick = () => {
-    // TODO: Implement login functionality
-    console.log("Login clicked");
+    startTransition(async () => {
+      await signInWithGoogle();
+    });
+  };
+
+  const handleLogoutClick = () => {
+    startTransition(async () => {
+      await signOut();
+    });
   };
 
   return (
@@ -16,11 +30,37 @@ export function Navbar() {
           <span className="text-2xl font-bold text-primary">EventPilot</span>
         </div>
 
-        {/* Login Button */}
+        {/* Auth Button */}
         <div className="flex items-center gap-4">
-          <Button onClick={handleLoginClick} size="default">
-            Login
-          </Button>
+          {loading ? (
+            <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
+          ) : user ? (
+            <Button 
+              onClick={handleLogoutClick} 
+              size="default"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <Spinner className="mr-2" />
+                  Logging out...
+                </>
+              ) : "Logout"}
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleLoginClick} 
+              size="default"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <Spinner className="mr-2" />
+                  Logging in...
+                </>
+              ) : "Login"}
+            </Button>
+          )}
         </div>
       </div>
     </nav>
