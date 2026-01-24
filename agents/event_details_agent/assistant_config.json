@@ -1,11 +1,11 @@
 {
-  "name": "Riley",
+  "name": "Ava",
   "voice": {
-    "voiceId": "Elliot",
+    "voiceId": "Tara",
     "provider": "vapi"
   },
   "model": {
-    "model": "gpt-4o",
+    "model": "gpt-4o-mini",
     "messages": [
       {
         "role": "system",
@@ -15,7 +15,7 @@
     "provider": "openai",
     "temperature": 0.5
   },
-  "first_message": "Thank you for calling EventPilot. This is Riley, your event planning assistant. How may I help you today?",
+  "first_message": "Thank you for calling EventPilot. This is Ava, your event planning assistant. How may I help you today?",
   "end_call_message": "Thank you for calling EventPilot! I'll be in touch with you soon with venue recommendations. Have a great day!",
   "transcriber": {
     "model": "nova-3",
