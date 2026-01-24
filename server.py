@@ -138,5 +138,10 @@ async def save_event_details(request: Request):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
+@app.get("/")
+def health_check():
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
