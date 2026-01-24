@@ -216,3 +216,7 @@ scripts/menu_updater/menus/
 # IDEs
 .cursor
 .vscode
+
+# Test files
+test/
+testing/

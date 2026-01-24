@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+
+import httpx
 from fastapi import APIRouter, Request
 from datetime import datetime, timezone
 from supabase import create_client
@@ -130,8 +132,24 @@ async def save_event_details(request: Request):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
-@router.post(f"{PREFIX}/call_summary")
-async def call_summary(request: Request):
-    body = await request.json()
-    print(body)
+@router.post(f"{PREFIX}/webhook")
+async def webhook(request: Request):
+    """Handle webhook requests from VAPI."""
+    payload = await request.json()
+    message_type = payload.get("message", {}).get("type")
+
+    if message_type == "end-of-call-report":
+        conversation_messages = payload.get("message", {}).get("messages", [])
+        event_id = None
+        for msg in conversation_messages[::-1]:
+            if msg.get("role") == "tool_call_result" and msg.get("name") == "save_event_details":
+                event_id = msg.get("result", {}).get("event_id")
+                break
+        if event_id:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"{os.getenv('SERVER_BASE_URL')}/venue_search/process",
+                    json={"event_id": event_id}
+                )
+    
     return {"status": "success"}
