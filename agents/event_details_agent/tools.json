@@ -12,7 +12,7 @@
       }
     },
     "server": {
-      "url": "https://cerebral-valley-hacks.up.railway.app/get_current_datetime"
+      "url": "https://event-pilot.up.railway.app/event_details/get_current_datetime"
     }
   },
   {
@@ -42,7 +42,7 @@
       }
     ],
     "server": {
-      "url": "https://cerebral-valley-hacks.up.railway.app/get_user_information"
+      "url": "https://event-pilot.up.railway.app/event_details/get_user_information"
     }
   },
   {
@@ -86,7 +86,7 @@
       }
     ],
     "server": {
-      "url": "https://cerebral-valley-hacks.up.railway.app/save_user_information"
+      "url": "https://event-pilot.up.railway.app/event_details/save_user_information"
     }
   },
   {
@@ -181,7 +181,7 @@
       }
     ],
     "server": {
-      "url": "https://cerebral-valley-hacks.up.railway.app/save_event_details"
+      "url": "https://event-pilot.up.railway.app/event_details/save_event_details"
     }
   }
 ]

@@ -12,7 +12,7 @@ PREFIX = "/event_details"
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SECRET_KEY"))
 
 
-@router.post("/get_current_datetime")
+@router.post(f"{PREFIX}/get_current_datetime")
 async def get_current_datetime(request: Request):
     """Return the current date, time and day of the week."""
     payload = await request.json()
@@ -26,7 +26,7 @@ async def get_current_datetime(request: Request):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
-@router.post("/get_user_information")
+@router.post(f"{PREFIX}/get_user_information")
 async def get_user_information(request: Request):
     """Return the user's information from public.users based on the phone number."""
     payload = await request.json()
@@ -49,7 +49,7 @@ async def get_user_information(request: Request):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
-@router.post("/save_user_information")
+@router.post(f"{PREFIX}/save_user_information")
 async def save_user_information(request: Request):
     """Save a new user to the database and return their user ID."""
     payload = await request.json()
@@ -80,7 +80,7 @@ async def save_user_information(request: Request):
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
-@router.post("/save_event_details")
+@router.post(f"{PREFIX}/save_event_details")
 async def save_event_details(request: Request):
     """Save event details to the database and return the event ID."""
     payload = await request.json()
@@ -127,4 +127,3 @@ async def save_event_details(request: Request):
     else:
         result = {"error": "Failed to save event details"}
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
-
