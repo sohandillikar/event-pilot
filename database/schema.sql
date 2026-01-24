@@ -16,7 +16,7 @@ CREATE TABLE public.events (
     number_of_attendees INTEGER NOT NULL,
     venue_type TEXT NOT NULL CHECK (venue_type IN ('hotel', 'resort', 'restaurant', 'bar', 'nightclub', 'event space')),
     location_city TEXT NOT NULL,
-    location_state CHAR(2) NOT NULL,
+    location_state TEXT NOT NULL,
     budget_min INTEGER NOT NULL,
     budget_max INTEGER NOT NULL,
     required_amenities TEXT[],

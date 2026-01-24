@@ -29,14 +29,6 @@
     },
     "messages": [
       {
-        "type": "request-start",
-        "content": "Let me quickly look up your information."
-      },
-      {
-        "type": "request-complete",
-        "content": "Got it!"
-      },
-      {
         "type": "request-failed",
         "content": "Sorry, I'm having trouble accessing the system right now."
       }
@@ -60,8 +52,7 @@
           },
           "email": {
             "description": "The user's email address",
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+            "type": "string"
           },
           "company": {
             "description": "The name of the user's company",
@@ -94,7 +85,7 @@
     "function": {
       "name": "save_event_details",
       "strict": true,
-      "description": "Use this tool at the end of the call, once you have collected all the required event details from the customer. This tool saves the complete event information to the database and returns the event ID. Only call this tool after you have gathered all the following information: start date, end date, number of attendees, venue type, location city, location state (two letter USPS abbreviation), minimum budget, and maximum budget. Optional fields like required amenities and additional details can be included if provided by the customer.",
+      "description": "Use this tool at the end of the call, once you have collected all the required event details from the customer. This tool saves the complete event information to the database and returns the event ID. Only call this tool after you have gathered all the following information: start date, end date, number of attendees, venue type, location city, location state, minimum budget, and maximum budget. Optional fields like required amenities and additional details can be included if provided by the customer.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -127,9 +118,8 @@
             "type": "string"
           },
           "location_state": {
-            "description": "The state where the event will be hosted (two letter USPS abbreviation)",
-            "type": "string",
-            "pattern": "^[A-Z]{2}$"
+            "description": "The state where the event will be hosted",
+            "type": "string"
           },
           "budget_min": {
             "description": "Minimum budget for the event in dollars",

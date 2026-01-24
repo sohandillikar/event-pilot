@@ -42,10 +42,11 @@ async def get_user_information(request: Request):
             "name": user["name"],
             "email": user["email"],
             "phone": user["phone"],
-            "company": user["company"]
+            "company": user["company"],
+            "user_exists": True
         }
     else:
-        result = {"error": "User does not exist in the system"}
+        result = {"error": "User does not exist in the system", "user_exists": False}
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
 
 
@@ -127,3 +128,10 @@ async def save_event_details(request: Request):
     else:
         result = {"error": "Failed to save event details"}
     return {"results": [{"toolCallId": tool_call_id, "result": result}]}
+
+
+@router.post(f"{PREFIX}/call_summary")
+async def call_summary(request: Request):
+    body = await request.json()
+    print(body)
+    return {"status": "success"}
