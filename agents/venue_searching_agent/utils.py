@@ -112,8 +112,10 @@ def process_venue_search(event_id: str, send_email: bool = False):
 def generate_email_about_venues(data: dict, to_email: str) -> dict:
     logger.info(f"[FUNCTION CALL] - generate_email_about_venues(data=..., to_email={to_email})")
 
-    with open("email_notification_system_promp.md", "r") as input_file:
+    prompt_path = os.path.join(os.path.dirname(__file__), "email_notification_system_prompt.md")
+    with open(prompt_path, "r") as input_file:
         SYSTEM_PROMPT = input_file.read()
+    
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         ("human", "{data_json}")
