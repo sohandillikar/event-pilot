@@ -129,8 +129,9 @@ def generate_email_about_venues(data: dict, to_email: str) -> dict:
     subject_line = f"Venue Recommendations for Your Upcoming Event on {start_date_formatted}"
 
     return {
-        "from": "Ava from EventPilot <ava@aggiebuilds.com>",
+        "from": f"Ava from EventPilot <ava@{os.getenv('RESEND_DOMAIN')}>",
         "to": to_email,
+        "reply_to": f"ava@{os.getenv('RESEND_DOMAIN')}",
         "subject": subject_line,
         "html": email_content
     }
