@@ -1,9 +1,11 @@
 import os
 from dotenv import load_dotenv
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, BackgroundTasks
 from datetime import datetime, timezone
 from supabase import create_client
+
+from agents.venue_searching_agent.utils import process_venue_search
 
 load_dotenv()
 
@@ -108,8 +110,8 @@ async def save_event_details(request: Request):
         "end_date": parameters.get("end_date"),
         "number_of_attendees": parameters.get("number_of_attendees"),
         "venue_type": parameters.get("venue_type"),
-        "location_city": parameters.get("location_city"),
-        "location_state": parameters.get("location_state"),
+        "city": parameters.get("city"),
+        "state": parameters.get("state"),
         "budget_min": parameters.get("budget_min"),
         "budget_max": parameters.get("budget_max")
     }
@@ -132,7 +134,7 @@ async def save_event_details(request: Request):
 
 
 @router.post(f"{PREFIX}/webhook")
-async def webhook(request: Request):
+async def webhook(request: Request, background_tasks: BackgroundTasks):
     """Handle webhook requests from VAPI."""
     payload = await request.json()
     message_type = payload.get("message", {}).get("type")
@@ -145,6 +147,6 @@ async def webhook(request: Request):
                 event_id = msg.get("result", {}).get("event_id")
                 break
         if event_id:
-            print(f"Will search for venues for event {event_id}") # TODO: Search for venues for event
+            background_tasks.add_task(process_venue_search, event_id, True)
     
     return {"status": "success"}

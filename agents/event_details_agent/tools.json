@@ -113,11 +113,11 @@
               "event space"
             ]
           },
-          "location_city": {
+          "city": {
             "description": "The city where the event will be hosted",
             "type": "string"
           },
-          "location_state": {
+          "state": {
             "description": "The state where the event will be hosted",
             "type": "string"
           },
@@ -149,8 +149,8 @@
           "end_date",
           "number_of_attendees",
           "venue_type",
-          "location_city",
-          "location_state",
+          "city",
+          "state",
           "budget_min",
           "budget_max"
         ]
