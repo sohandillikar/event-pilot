@@ -8,7 +8,7 @@ import markdown
 from datetime import datetime
 
 from supabase import create_client
-from agent import search_nearby_venues, get_venue_pricing
+from .agent import search_nearby_venues, get_venue_pricing
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
