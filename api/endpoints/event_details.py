@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 
-import httpx
 from fastapi import APIRouter, Request
 from datetime import datetime, timezone
 from supabase import create_client
@@ -146,10 +145,6 @@ async def webhook(request: Request):
                 event_id = msg.get("result", {}).get("event_id")
                 break
         if event_id:
-            async with httpx.AsyncClient() as client:
-                await client.post(
-                    f"{os.getenv('SERVER_BASE_URL')}/venue_search/process",
-                    json={"event_id": event_id}
-                )
+            print(f"Will search for venues for event {event_id}") # TODO: Search for venues for event
     
     return {"status": "success"}
