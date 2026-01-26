@@ -2,89 +2,157 @@
   {
     "type": "function",
     "function": {
-      "name": "save_event_details",
+      "name": "get_current_datetime",
       "strict": true,
-      "description": "Use this tool at the end of the call, once you have collected all the required event details from the customer. This tool saves the complete event information to the database. Only call this tool after you have gathered all the following information: customer name, company name, customer role, event name, start date, end date, number of attendees, venue type, location city, location state, and budget. Optional fields like required amenities and additional details can be included if provided by the customer.",
+      "description": "Call this tool after collecting user information and before asking for event details. This tool returns the current date, time and day of the week, which you should use as context to ensure the event start date is in the future and to validate date inputs from the customer.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    "server": {
+      "url": "https://event-pilot.up.railway.app/event_details/get_current_datetime"
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_user_information",
+      "strict": true,
+      "description": "Call this tool at the beginning of the conversation to check if the user exists in the system. This tool automatically identifies the user and returns the user's ID, name, email, and phone number if found. If the user is not found in the system, it will indicate that the user does not exist and you should proceed to collect their information.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    "messages": [
+      {
+        "type": "request-failed",
+        "content": "Sorry, I'm having trouble accessing the system right now."
+      }
+    ],
+    "server": {
+      "url": "https://event-pilot.up.railway.app/event_details/get_user_information"
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "save_user_information",
+      "strict": true,
+      "description": "Call this tool after you have collected the user's information when they are not found in the system. This tool saves the new user's information to the database and returns their user ID. Only call this tool after you have gathered the user's name, email, and company name.",
       "parameters": {
         "type": "object",
         "properties": {
-          "budget": {
-            "description": "The budget for the event in dollars",
-            "type": "integer"
+          "name": {
+            "description": "The user's full name",
+            "type": "string"
+          },
+          "email": {
+            "description": "The user's email address",
+            "type": "string"
+          },
+          "company": {
+            "description": "The name of the user's company",
+            "type": "string"
+          }
+        },
+        "required": ["name", "email", "company"]
+      }
+    },
+    "messages": [
+      {
+        "type": "request-start",
+        "content": "Let me save your information."
+      },
+      {
+        "type": "request-complete",
+        "content": "Perfect! I've saved your information."
+      },
+      {
+        "type": "request-failed",
+        "content": "Sorry, I'm having trouble saving your information right now."
+      }
+    ],
+    "server": {
+      "url": "https://event-pilot.up.railway.app/event_details/save_user_information"
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "save_event_details",
+      "strict": true,
+      "description": "Use this tool at the end of the call, once you have collected all the required event details from the customer. This tool saves the complete event information to the database and returns the event ID. Only call this tool after you have gathered all the following information: start date, end date, number of attendees, venue type, location city, location state, minimum budget, and maximum budget. Optional fields like required amenities and additional details can be included if provided by the customer.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "start_date": {
+            "description": "The start date of the event in YYYY-MM-DD format. Must be greater than the current date.",
+            "type": "string"
           },
           "end_date": {
-            "description": "The end date of the event in YYYY-MM-DD format",
+            "description": "The end date of the event in YYYY-MM-DD format. Must be greater than or equal to the start date.",
             "type": "string"
           },
-          "event_name": {
-            "description": "The name of the event",
-            "type": "string"
-          },
-          "start_date": {
-            "description": "The start date of the event in YYYY-MM-DD format",
-            "type": "string"
+          "number_of_attendees": {
+            "description": "The number of people expected to attend the event",
+            "type": "integer"
           },
           "venue_type": {
             "description": "The type of venue for the event",
             "type": "string",
             "enum": [
-              "Hotel",
-              "Resort",
-              "Restaurant",
-              "Bar",
-              "Nightclub",
-              "Event Space",
-              "Vacation Rental"
+              "hotel",
+              "resort",
+              "restaurant",
+              "bar",
+              "nightclub",
+              "event space"
             ]
           },
-          "company_name": {
-            "description": "The name of the customers's company",
-            "type": "string"
-          },
-          "customer_name": {
-            "description": "The name of the customer requesting the event",
-            "type": "string"
-          },
-          "customer_role": {
-            "description": "The customer's role or occupation at their company",
-            "type": "string"
-          },
-          "location_city": {
+          "city": {
             "description": "The city where the event will be hosted",
             "type": "string"
           },
-          "location_state": {
-            "description": "The state where the event will be hosted (full state name)",
+          "state": {
+            "description": "The state where the event will be hosted",
             "type": "string"
           },
-          "additional_details": {
-            "description": "Any additional details, special requirements, or preferences for the event (optional)",
-            "type": "string"
+          "budget_min": {
+            "description": "Minimum budget for the event in dollars",
+            "type": "integer"
+          },
+          "budget_max": {
+            "description": "Maximum budget for the event in dollars",
+            "type": "integer"
           },
           "required_amenities": {
-            "description": "List of required amenities or accommodations (optional)",
+            "description": "List of required amenities or accommodations such as parking, catering, AV equipment, accessibility features, etc. (optional)",
             "type": "array",
             "items": {
               "type": "string"
             }
           },
-          "number_of_attendees": {
-            "description": "The number of people expected to attend the event",
-            "type": "integer"
+          "additional_details": {
+            "description": "Any additional details, special requirements, or preferences for the event (optional)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "customer_name",
-          "company_name",
-          "customer_role",
-          "event_name",
           "start_date",
           "end_date",
           "number_of_attendees",
           "venue_type",
-          "location_city",
-          "location_state",
-          "budget"
+          "city",
+          "state",
+          "budget_min",
+          "budget_max"
         ]
       }
     },
@@ -103,23 +171,7 @@
       }
     ],
     "server": {
-      "url": "https://cerebral-valley-hacks.up.railway.app/events/create"
+      "url": "https://event-pilot.up.railway.app/event_details/save_event_details"
     }
-  },
-  {
-    "type": "function",
-    "function": {
-      "name": "get_current_datetime",
-      "description": "Use this tool at the beginning of the call to get the current date and time. This will help you understand the correct year and date context when users mention event start and end dates.",
-      "parameters": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    "server": {
-      "url": "https://cerebral-valley-hacks.up.railway.app/get_current_datetime"
-    },
-    "async": true
   }
 ]

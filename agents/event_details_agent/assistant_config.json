@@ -1,5 +1,5 @@
 {
-  "name": "Riley",
+  "name": "Andrew",
   "voice": {
     "voiceId": "Elliot",
     "provider": "vapi"
@@ -15,7 +15,7 @@
     "provider": "openai",
     "temperature": 0.5
   },
-  "first_message": "Thank you for calling EventPilot. This is Riley, your event planning assistant. How may I help you today?",
+  "first_message_mode": "assistant-speaks-first-with-model-generated-message",
   "end_call_message": "Thank you for calling EventPilot! I'll be in touch with you soon with venue recommendations. Have a great day!",
   "transcriber": {
     "model": "nova-3",
@@ -23,5 +23,9 @@
     "provider": "deepgram",
     "endpointing": 150
   },
-  "end_call_phrases": ["goodbye", "talk to you soon"]
+  "end_call_phrases": ["goodbye", "talk to you soon"],
+  "analysis_plan": {
+    "summary_plan": { "enabled": false },
+    "success_evaluation_plan": { "enabled": false }
+  }
 }

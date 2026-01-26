@@ -1,5 +1,5 @@
 {
-  "name": "Alex",
+  "name": "Andrew",
   "voice": {
     "voiceId": "Elliot",
     "provider": "vapi"
@@ -15,13 +15,17 @@
     "provider": "openai",
     "temperature": 0.5
   },
-  "first_message": "Hello, this is Alex calling from EventPilot regarding a corporate event. May I speak with someone about venue availability and pricing?",
-  "end_call_message": "Thank you for your time. We'll review our options and be in touch soon.",
+  "first_message_mode": "assistant-waits-for-user",
+  "end_call_message": "Thank you for your time! I'll follow up with my client and get back to you soon.",
   "transcriber": {
     "model": "nova-3",
     "language": "en",
     "provider": "deepgram",
     "endpointing": 150
   },
-  "end_call_phrases": ["goodbye", "talk to you soon"]
+  "end_call_phrases": ["goodbye", "talk to you soon"],
+  "analysis_plan": {
+    "summary_plan": { "enabled": false },
+    "success_evaluation_plan": { "enabled": false }
+  }
 }

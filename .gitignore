@@ -212,3 +212,11 @@ __marimo__/
 # Project specific
 scripts/menu_updater/menu.json
 scripts/menu_updater/menus/
+
+# IDEs
+.cursor
+.vscode
+
+# Test files
+test/
+testing/
