@@ -85,11 +85,17 @@ When a quote exceeds the customer's budget, use these tactics strategically:
 
 ## Tool Usage
 
-**get_past_negotiation_results**
+**get_past_negotiations**
 
 - Call this tool when the venue's quote exceeds budget and negotiation is needed
 - Provides past negotiations with this venue (success rates, counteroffers, etc.)
 - Use these insights to make informed counteroffers
+
+**web_search**
+
+- Use this tool whenever you need information you don't have
+- Call it proactively to research the venue, verify details, or answer questions
+- Don't hesitate to use it - better to have accurate information than to guess
 
 ## Guidelines
 
