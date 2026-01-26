@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, Request
 from supabase import create_client
 from tavily import TavilyClient
+from vapi import Vapi
+
+from agents.negotiation_agent.utils import save_negotiation_results, email_customer_about_negotiation
 
 load_dotenv()
 
@@ -12,6 +15,7 @@ PREFIX = "/negotiation"
 
 supabase_client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SECRET_KEY"))
 tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+vapi_client = Vapi(token=os.getenv("VAPI_API_KEY"))
 
 
 @router.post(f"{PREFIX}/get_past_negotiations")
@@ -90,6 +94,17 @@ async def webhook(request: Request):
     message_type = payload.get("message", {}).get("type")
 
     if message_type == "end-of-call-report":
-        print(payload)
-    
+        transcript = payload.get("message", {}).get("transcript", "")
+        call_id = payload.get("message", {}).get("call", {}).get("id")
+        assistant_id = payload.get("message", {}).get("call", {}).get("assistantId")
+
+        # Save negotiation results
+        save_negotiation_results(transcript, call_id)
+
+        # Delete assistant
+        vapi_client.assistants.delete(assistant_id)
+
+        # Email customer about negotiation
+        email_customer_about_negotiation(call_id)
+
     return {"status": "success"}

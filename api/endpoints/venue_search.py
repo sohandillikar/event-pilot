@@ -52,7 +52,7 @@ async def webhook(request: Request):
 
         # Send email response
         email_params = {
-            "from": f"Ava from EventPilot <{to_email}>",
+            "from": f"Andrew from EventPilot <{to_email}>",
             "to": from_email,
             "reply_to": to_email,
             "subject": subject,

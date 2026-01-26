@@ -1,7 +1,7 @@
 {
-  "name": "Ava",
+  "name": "Andrew",
   "voice": {
-    "voiceId": "Tara",
+    "voiceId": "Elliot",
     "provider": "vapi"
   },
   "model": {
@@ -23,5 +23,9 @@
     "provider": "deepgram",
     "endpointing": 150
   },
-  "end_call_phrases": ["goodbye", "talk to you soon"]
+  "end_call_phrases": ["goodbye", "talk to you soon"],
+  "analysis_plan": {
+    "summary_plan": { "enabled": false },
+    "success_evaluation_plan": { "enabled": false }
+  }
 }
