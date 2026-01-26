@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 from fastapi import APIRouter, Request
 from supabase import create_client
+from tavily import TavilyClient
 
 load_dotenv()
 
@@ -10,6 +11,7 @@ router = APIRouter()
 PREFIX = "/negotiation"
 
 supabase_client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SECRET_KEY"))
+tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 
 @router.post(f"{PREFIX}/get_past_negotiations")
@@ -63,3 +65,19 @@ async def get_past_negotiations(request: Request):
             })
     
     return {"results": [{"toolCallId": tool_call_id, "result": {"past_negotiations": result}}]}
+
+
+@router.post(f"{PREFIX}/web_search")
+async def web_search(request: Request):
+    """Search the web for information."""
+    payload = await request.json()
+    tool_call = payload.get("message", {}).get("toolCalls", [{}])[0]
+    tool_call_id = tool_call.get("id")
+
+    # Get parameters from tool call
+    parameters = tool_call.get("function", {}).get("arguments", {})
+    query = parameters.get("query")
+    
+    response = tavily_client.search(query=query, include_answer="basic")
+    answer = response.get("answer")
+    return {"results": [{"toolCallId": tool_call_id, "result": {"answer": answer}}]}
