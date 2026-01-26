@@ -1,0 +1,24 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "get_past_negotiations",
+      "strict": true,
+      "description": "Retrieves historical negotiation data for this venue from past interactions. Returns details including event budgets and sizes, initial quotes with breakdowns, counteroffers made, and final agreed prices. Use this data to understand the venue's pricing patterns and negotiation flexibility when their current quote exceeds your client's budget.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "venue_id": {
+            "description": "The ID of the venue being negotiated with",
+            "type": "string"
+          }
+        },
+        "required": ["venue_id"]
+      }
+    },
+    "messages": [],
+    "server": {
+      "url": "https://event-pilot.up.railway.app/negotiation/get_past_negotiations"
+    }
+  }
+]

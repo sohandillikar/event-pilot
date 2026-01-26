@@ -253,6 +253,3 @@ def create_email_response(event_id: str):
     response_html = markdown.markdown(response_text)
 
     return response_text, response_html
-
-if __name__ == "__main__":
-    email_customer_about_venues("e57b1b63-f5e0-403b-aa1b-b16be5703dfa")

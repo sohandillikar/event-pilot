@@ -38,7 +38,7 @@ CREATE TABLE public.venues (
     longitude NUMERIC NOT NULL,
     google_types JSONB NOT NULL DEFAULT '[]'::jsonb,
     pricing TEXT,
-    status TEXT NOT NULL DEFAULT 'discovered' CHECK (status IN ('discovered', 'contacted', 'negotiated', 'selected', 'rejected')),
+    status TEXT NOT NULL DEFAULT 'discovered' CHECK (status IN ('discovered', 'negotiating', 'negotiated', 'selected', 'rejected')),
     UNIQUE(event_id, google_place_id)
 );
 
@@ -52,4 +52,32 @@ CREATE TABLE public.email_messages (
     subject TEXT NOT NULL,
     body_text TEXT,
     body_html TEXT
+);
+
+CREATE TABLE public.negotiations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+    venue_id UUID NOT NULL REFERENCES public.venues(id) ON DELETE CASCADE,
+    vapi_call_id TEXT NOT NULL,
+    
+    -- Negotiation data
+    venue_initial_quote INTEGER,  -- First price they give
+    venue_initial_quote_breakdown JSONB,  -- e.g. {"room": 3000, "catering": 2000, "av": 500}
+    
+    customer_budget_max INTEGER NOT NULL,  -- Snapshot from event at time of call
+    
+    agent_counteroffer INTEGER,  -- What your agent offered
+    agent_counteroffer_breakdown JSONB,  -- e.g. {"room": 3000, "catering": 2000, "av": 500}
+    agent_counteroffer_reasoning TEXT,  -- Why this amount (optional)
+    
+    venue_final_quote INTEGER,  -- Final price if they moved
+    venue_final_quote_breakdown JSONB,  -- e.g. {"room": 3000, "catering": 2000, "av": 500}
+
+    -- Additional context
+    venue_contact_person TEXT,  -- Who did we speak with?
+    venue_availability TEXT CHECK (venue_availability IN ('available', 'tentatively_available', 'not_available')),
+    venue_flexibility TEXT CHECK (venue_flexibility IN ('flexible', 'semi_flexible', 'not_flexible')),
+    restrictions JSONB DEFAULT '[]'::jsonb,  -- Any limitations they mentioned
+    notes TEXT
 );
