@@ -5,6 +5,7 @@ import logging
 import googlemaps
 import phonenumbers
 from tavily import TavilyClient
+from supabase import create_client
 
 from pydantic import BaseModel, Field
 from langchain.agents import AgentState
@@ -13,10 +14,13 @@ from langchain_core.messages.utils import trim_messages
 from langgraph.runtime import Runtime
 from langchain.tools import tool
 
+from agents.negotiation_agent.utils import start_negotiation
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+supabase_client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SECRET_KEY"))
 gmaps_client = googlemaps.Client(key=os.getenv("GOOGLE_PLACES_API_KEY"))
 tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
@@ -152,7 +156,7 @@ def get_venue_pricing(name: str, city: str, state: str) -> str:
 class NegotiateWithVenueInput(BaseModel):
     venue_id: str = Field(..., description="The ID of the venue to negotiate with")
 
-
+# Calls the negotiation agent
 @tool(
     "negotiate_with_venue",
     description="Negotiate with a venue to get the best deal possible",
@@ -160,7 +164,7 @@ class NegotiateWithVenueInput(BaseModel):
 )
 def negotiate_with_venue(venue_id: str) -> str:
     logger.info(f"[TOOL CALL] - negotiate_with_venue(venue_id={venue_id})")
-    # Change venue status to "negotiated" in Supabase
+    start_negotiation(venue_id)
     return "Negotiation has begun"
 
 

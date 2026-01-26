@@ -1,0 +1,27 @@
+{
+  "name": "Ava",
+  "voice": {
+    "voiceId": "Tara",
+    "provider": "vapi"
+  },
+  "model": {
+    "model": "gpt-4o",
+    "messages": [
+      {
+        "role": "system",
+        "content": "${SYSTEM_PROMPT}"
+      }
+    ],
+    "provider": "openai",
+    "temperature": 0.5
+  },
+  "first_message_mode": "assistant-speaks-first-with-model-generated-message",
+  "end_call_message": "Thank you for your time! I'll follow up with my client and get back to you soon.",
+  "transcriber": {
+    "model": "nova-3",
+    "language": "en",
+    "provider": "deepgram",
+    "endpointing": 150
+  },
+  "end_call_phrases": ["goodbye", "talk to you soon"]
+}
