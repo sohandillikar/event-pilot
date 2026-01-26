@@ -20,7 +20,6 @@ resend.api_key = os.getenv("RESEND_API_KEY")
 async def webhook(request: Request):
     """Handle webhook requests from Resend."""
     payload = await request.json()
-    print(payload)
 
     if payload.get("type") == "email.received":
         # Extract email data

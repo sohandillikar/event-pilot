@@ -38,7 +38,8 @@ CREATE TABLE public.venues (
     longitude NUMERIC NOT NULL,
     google_types JSONB NOT NULL DEFAULT '[]'::jsonb,
     pricing TEXT,
-    status TEXT NOT NULL DEFAULT 'discovered' CHECK (status IN ('discovered', 'contacted', 'negotiated', 'selected', 'rejected'))
+    status TEXT NOT NULL DEFAULT 'discovered' CHECK (status IN ('discovered', 'contacted', 'negotiated', 'selected', 'rejected')),
+    UNIQUE(event_id, google_place_id)
 );
 
 CREATE TABLE public.email_messages (

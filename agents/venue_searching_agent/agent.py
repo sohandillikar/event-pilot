@@ -81,6 +81,7 @@ def search_nearby_venues(
     ).get("results", [])
     
     venues = []
+    venue_ids = []
     
     for place in places_nearby_result:
         if place.get("business_status") != "OPERATIONAL":
@@ -88,6 +89,8 @@ def search_nearby_venues(
         if len(venues) >= max_results:
             break
         place_id = place["place_id"]
+        if place_id in venue_ids:
+            continue
 
         place_details = gmaps_client.place(
             place_id=place_id,
@@ -121,6 +124,7 @@ def search_nearby_venues(
             },
             "types": place_details.get("types")
         })
+        venue_ids.append(place_id)
     
     return venues
 
@@ -156,10 +160,13 @@ class NegotiateWithVenueInput(BaseModel):
 )
 def negotiate_with_venue(venue_id: str) -> str:
     logger.info(f"[TOOL CALL] - negotiate_with_venue(venue_id={venue_id})")
+    # Change venue status to "negotiated" in Supabase
     return "Negotiation has begun"
+
 
 class WebSearchInput(BaseModel):
     query: str = Field(..., description="The query to search the web for")
+
 
 @tool(
     "web_search",
