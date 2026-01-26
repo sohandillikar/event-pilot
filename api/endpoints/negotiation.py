@@ -81,3 +81,15 @@ async def web_search(request: Request):
     response = tavily_client.search(query=query, include_answer="basic")
     answer = response.get("answer")
     return {"results": [{"toolCallId": tool_call_id, "result": {"answer": answer}}]}
+
+
+@router.post(f"{PREFIX}/webhook")
+async def webhook(request: Request):
+    """Handle webhook requests from VAPI."""
+    payload = await request.json()
+    message_type = payload.get("message", {}).get("type")
+
+    if message_type == "end-of-call-report":
+        print(payload)
+    
+    return {"status": "success"}
