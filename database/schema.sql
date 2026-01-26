@@ -40,3 +40,15 @@ CREATE TABLE public.venues (
     pricing TEXT,
     status TEXT NOT NULL DEFAULT 'discovered' CHECK (status IN ('discovered', 'contacted', 'negotiated', 'selected', 'rejected'))
 );
+
+CREATE TABLE public.email_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    event_id UUID NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+    resend_id TEXT UNIQUE NOT NULL,
+    from_email TEXT NOT NULL,
+    to_email TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    body_text TEXT,
+    body_html TEXT
+);

@@ -7,13 +7,9 @@ import phonenumbers
 from tavily import TavilyClient
 
 from pydantic import BaseModel, Field
-
-from langchain.agents import create_agent, AgentState
+from langchain.agents import AgentState
 from langchain.agents.middleware import before_model
-
-from langchain_core.messages import HumanMessage
 from langchain_core.messages.utils import trim_messages
-
 from langgraph.runtime import Runtime
 from langchain.tools import tool
 
@@ -149,23 +145,30 @@ def get_venue_pricing(name: str, city: str, state: str) -> str:
     return answer
 
 
-if __name__ == "__main__":
-    SYSTEM_PROMPT = "You are a venue searching assistant. Your job is to help a user find the perfect venue for their event."
+class NegotiateWithVenueInput(BaseModel):
+    venue_id: str = Field(..., description="The ID of the venue to negotiate with")
 
-    agent = create_agent(
-        model="openai:gpt-4o-mini",
-        system_prompt=SYSTEM_PROMPT,
-        tools=[search_nearby_venues, get_venue_pricing],
-        middleware=[trim_messages_middleware]
-    )
-    
-    messages = []
 
-    while True:
-        user_input = input("\n\nYou: ")
-        messages.append(HumanMessage(content=user_input))
+@tool(
+    "negotiate_with_venue",
+    description="Negotiate with a venue to get the best deal possible",
+    args_schema=NegotiateWithVenueInput
+)
+def negotiate_with_venue(venue_id: str) -> str:
+    logger.info(f"[TOOL CALL] - negotiate_with_venue(venue_id={venue_id})")
+    return "Negotiation has begun"
 
-        result = agent.invoke({"messages": messages})
-        messages = result["messages"]
-        
-        messages[-1].pretty_print()
+class WebSearchInput(BaseModel):
+    query: str = Field(..., description="The query to search the web for")
+
+@tool(
+    "web_search",
+    description="Search the web for information",
+    args_schema=WebSearchInput
+)
+def web_search(query: str) -> str:
+    logger.info(f"[TOOL CALL] - web_search(query={query})")
+
+    response = tavily_client.search(query=query, include_answer="basic")
+    answer = response.get("answer")
+    return answer
