@@ -18,123 +18,219 @@ This process can take operations teams weeks to months, with significant opportu
 
 ## The Solution
 
-EventPilot automates the entire workflow through a coordinated multi-agent system. Clients make one phone call to describe their event, and the system:
+EventPilot automates the entire workflow through a coordinated multi-agent system that combines voice calls and email interactions. The process unfolds in three phases:
 
-1. **Collects** event requirements through a conversational voice agent
-2. **Discovers** suitable venues using intelligent web scraping
-3. **Negotiates** with venues in parallel to secure optimal pricing (typically 10-15% savings)
-4. **Delivers** curated results via SMS automatically
+1. **Event Collection (Voice)**: Conversational voice agent collects event requirements through a natural phone conversation
+2. **Venue Discovery (Email)**: Automated venue search using Google Places and web research, with results delivered via email
+3. **Negotiation (Voice, Optional)**: AI agent calls venues on behalf of the client to negotiate availability and pricing
 
-All orchestrated through MongoDB as a shared context engine, enabling seamless state management across agents.
+All coordinated through Supabase PostgreSQL as the central data store, enabling seamless state management across agents.
 
 ## How It Works
 
+### Phase 1: Event Collection (Voice)
+
+The customer calls EventPilot and speaks with an AI agent named "Andrew" for a 5-10 minute conversation:
+
+- Collects event details: location, venue type, dates, attendees, budget, amenities
+- Validates dates and information through natural conversation
+- Saves structured event data to the database
+- Automatically triggers venue search after call ends
+
+### Phase 2: Venue Discovery (Email)
+
+The system automatically searches for suitable venues and sends results via email:
+
+- Searches Google Places API for venues matching criteria
+- Researches pricing information through web search (Tavily)
+- Sends personalized email with curated venue recommendations
+- Customer can reply via email to:
+  - Ask questions about specific venues
+  - Request additional searches with different criteria
+  - Request negotiations with selected venues
+
+### Phase 3: Negotiation (Voice, Optional)
+
+When requested, the system calls venues on behalf of the customer:
+
+- Creates a custom negotiation agent for each venue with full event context
+- AI agent calls venue to discuss availability, capacity, and pricing
+- Conducts professional negotiation if pricing exceeds budget
+- Emails detailed results back to customer
+
+### System Architecture Flow
+
 ```mermaid
 flowchart TD
-    Customer[Customer] -->|Phone Call| EventAgent[Event Details Agent<br/>Riley]
-    EventAgent -->|Saves Event| MongoDB[(MongoDB Atlas<br/>Context Engine)]
-    MongoDB -->|Triggers| VenueAgent[Venue Searching Agent]
-    VenueAgent -->|Tavily Search| WebScraping[Web Scraping<br/>Tavily API]
-    VenueAgent -->|Extract Contacts| GoogleMaps[Google Maps API]
-    WebScraping -->|Venue Data| VenueAgent
-    GoogleMaps -->|Phone Numbers| VenueAgent
-    VenueAgent -->|Saves Venues| MongoDB
-    MongoDB -->|For Each Venue| NegotiationAgent[Negotiation Agent<br/>Alex]
-    NegotiationAgent -->|Parallel Calls| Venue1[Venue 1]
-    NegotiationAgent -->|Parallel Calls| Venue2[Venue 2]
-    NegotiationAgent -->|Parallel Calls| VenueN[Venue N]
-    Venue1 -->|Results| NegotiationAgent
-    Venue2 -->|Results| NegotiationAgent
-    VenueN -->|Results| NegotiationAgent
-    NegotiationAgent -->|Saves Results| MongoDB
-    MongoDB -->|Triggers| SMSAgent[SMS Delivery<br/>Vonage]
-    SMSAgent -->|Sends Summary| Customer
+    Customer[Customer] -->|Voice Call| EventAgent[Event Details Agent]
+    EventAgent -->|Saves Event| Database[(Supabase PostgreSQL)]
+    Database -->|Webhook Trigger| VenueAgent[Venue Searching Agent]
+    VenueAgent -->|Search| GooglePlaces[Google Places API]
+    VenueAgent -->|Research Pricing| Tavily[Tavily Web Search]
+    GooglePlaces -->|Venue Data| VenueAgent
+    Tavily -->|Pricing Info| VenueAgent
+    VenueAgent -->|Saves Venues| Database
+    VenueAgent -->|Sends Email| Customer
+    Customer -->|Email Reply| EmailWebhook[Email Webhook]
+    EmailWebhook -->|Processes| VenueAgent
+    VenueAgent -->|"If Negotiation Requested"| NegotiationAgent[Negotiation Agent]
+    NegotiationAgent -->|Voice Call| VenuePhone[Venue Phone]
+    VenuePhone -->|Results| NegotiationAgent
+    NegotiationAgent -->|Saves Results| Database
+    NegotiationAgent -->|Sends Email| Customer
 ```
+
+## Challenges and Solutions
+
+Building a production-ready multi-agent system required solving several complex technical challenges:
+
+### Challenge 1: Voice Agent Reliability
+
+**Problem**: Ensuring voice agents consistently follow conversation flows, extract correct information, and handle edge cases (unclear responses, date validation, budget ranges).
+
+**Solution**:
+- Structured system prompts with explicit sequential conversation steps
+- Sequential information gathering to reduce complexity (one question at a time)
+- Built-in validation via function calling (e.g., `get_current_datetime` for date validation)
+- End-call phrase detection ("goodbye", "talk to you soon") to gracefully terminate conversations
+- Temperature tuning (0.5) to balance creativity with consistency
+
+### Challenge 2: Context Management Across Agents
+
+**Problem**: Three specialized agents (two voice, one email) operating asynchronously need to share event, venue, and negotiation state without conflicts or data loss.
+
+**Solution**:
+- Supabase PostgreSQL as centralized state store with ACID guarantees
+- Normalized schema with proper foreign keys ensuring referential integrity (`users` → `events` → `venues` → `negotiations`)
+- Event-specific email addresses (`event+{event_id}@domain.com`) for automatic routing and context loading
+- Agents load context on-demand using event/venue IDs rather than passing data between agents
+- Email message history stored in database for conversation continuity
+
+### Challenge 3: Webhook Orchestration
+
+**Problem**: Coordinating asynchronous workflows across voice calls (VAPI) and email (Resend) systems with different callback mechanisms and timing.
+
+**Solution**:
+- FastAPI webhook endpoints for VAPI (`/event_details/webhook`, `/negotiation/webhook`) process call completion events
+- Resend webhook (`/venue_search/webhook`) handles incoming email and triggers agent processing
+- Background tasks for long-running operations (venue search after call) prevent webhook timeouts
+- Dynamic VAPI assistant creation/deletion per negotiation to manage API resources and prevent conflicts
+- Structured data extraction using LangChain to parse unstructured voice transcripts into database records
 
 ## Architecture
 
-EventPilot is built on a multi-agent architecture where specialized agents collaborate through a shared context layer.
+EventPilot is built on a multi-agent architecture where specialized agents collaborate through webhooks and a shared database.
 
 ### Agent Responsibilities
 
-**Event Details Agent (Riley)**
+**Event Details Agent (Andrew)**
 
-- Voice agent powered by Vapi and GPT-4o
+- Voice agent powered by VAPI and GPT-4o
 - Conducts natural conversation to collect event requirements
 - Validates and structures data before persistence
-- Fields: event name, dates, attendee count, venue type, location, budget, amenities
+- Uses function calling to save user and event information
+- Triggers venue search automatically via webhook when call ends
+- Collects: dates, attendee count, venue type, location, budget, amenities
 
 **Venue Searching Agent**
 
+- Email-based agent built with LangChain and GPT-4o-mini
 - Orchestrates venue discovery through multiple data sources
-- Uses Tavily API for intelligent web scraping and content extraction
-- Leverages Google Maps API to extract venue contact information
-- Filters venues based on capacity, budget, and location constraints
-- Employs GPT-4o-mini for structured data extraction from unstructured web content
+- Uses Google Places API to search venues by location and type
+- Leverages Tavily API for web search to find pricing information
+- Processes customer email replies through LangChain tool-calling
+- Can trigger negotiations when customer requests it via email
 
-**Negotiation Agent (Alex)**
+**Negotiation Agent (Andrew)**
 
 - Voice agent that autonomously calls venues
-- Retrieves event context from MongoDB at call start
+- Dynamically created per venue with full event context injected
+- Retrieves historical negotiation data to inform strategy
 - Conducts availability checks, capacity verification, and pricing discussions
-- Implements negotiation strategies when quoted prices exceed budget thresholds
-- Executes parallel calls to multiple venues simultaneously
-- Persists negotiation outcomes with structured status tracking
+- Implements negotiation tactics when quoted prices exceed budget
+- Uses LangChain structured output extraction to parse call transcripts
+- Automatically deleted after negotiation completes to manage resources
 
-### Context Management
+### Data Management
 
-MongoDB Atlas serves as the central context engine, enabling:
+Supabase PostgreSQL serves as the central data store with a normalized schema:
 
-- **State Persistence**: Event data, venue lists, and negotiation results stored as documents
-- **Agent Coordination**: Agents read and write to shared documents, maintaining consistency
-- **Async Orchestration**: FastAPI background tasks trigger agent workflows based on state changes
-- **Result Aggregation**: Final SMS generation pulls from complete event and negotiation data
+- **users**: Customer information (name, email, phone, company)
+- **events**: Event requirements and details (dates, attendees, budget, venue type, location)
+- **venues**: Discovered venues with Google Places data (name, address, phone, rating, pricing)
+- **negotiations**: Negotiation outcomes (initial quotes, counteroffers, final quotes, contact person)
+- **email_messages**: Email conversation history for context continuity
+
+Foreign key relationships maintain data integrity: `users` → `events` → `venues` → `negotiations`
 
 ### Orchestration Layer
 
 The FastAPI server (`server.py`) provides:
 
-- REST endpoints for Vapi tool integrations
-- Background task management for async agent execution
+- REST endpoints for VAPI tool integrations (function calling)
+- Webhook endpoints for VAPI (call completion) and Resend (email receipt)
+- Background task management for async venue search execution
+- Email routing using event-specific addresses (`event+{event_id}@domain.com`)
 - Health check endpoints for system monitoring
-- CORS configuration for web dashboard integration
 
 ## Technical Stack
 
-| Component         | Technology           | Purpose                                               |
-| ----------------- | -------------------- | ----------------------------------------------------- |
-| **Language**      | Python 3.x           | Core application logic                                |
-| **Framework**     | FastAPI              | REST API and orchestration                            |
-| **LLM**           | GPT-4o / GPT-4o-mini | Agent reasoning and data extraction                   |
-| **Voice Agents**  | Vapi                 | Conversational AI for customer and venue interactions |
-| **Web Search**    | Tavily               | Intelligent web scraping and content extraction       |
-| **Places API**    | Google Maps          | Venue contact information extraction                  |
-| **SMS**           | Vonage               | Automated result delivery                             |
-| **Database**      | MongoDB Atlas        | Agent context engine and state persistence            |
-| **Transcription** | Deepgram             | Real-time speech-to-text for voice agents             |
+| Component            | Technology                  | Why We Chose It                                                              |
+| -------------------- | --------------------------- | ---------------------------------------------------------------------------- |
+| **Language**         | Python 3.x                  | Rich AI/ML ecosystem, excellent library support, FastAPI compatibility       |
+| **Framework**        | FastAPI                     | Modern async API, webhook handling, automatic OpenAPI documentation          |
+| **Database**         | Supabase (PostgreSQL)       | Structured schema for complex queries, managed infrastructure, data integrity|
+| **LLM**              | OpenAI GPT-4o / GPT-4o-mini | Industry-leading reasoning, reliable function calling, cost tiers            |
+| **Voice Platform**   | VAPI                        | Built-in LLM integration and function calling, faster development            |
+| **Agent Framework**  | LangChain                   | Tool orchestration for email agent, structured output extraction             |
+| **Voice-to-Text**    | Deepgram Nova-3             | Real-time transcription integrated with VAPI                                 |
+| **Web Search**       | Tavily                      | Purpose-built for AI agents, returns structured data from web searches       |
+| **Places Data**      | Google Maps API             | Comprehensive venue database, contact information, ratings, location data    |
+| **Email**            | Resend                      | Developer-friendly API, webhook support for receiving emails, reliable       |
+
+### Key Architecture Decisions
+
+**Multi-modal Communication**: We chose voice for high-touch interactions (initial collection, negotiation) where natural conversation creates better UX, and email for research and follow-up where customers need time to review options.
+
+**Specialized Agents**: Rather than building one general-purpose agent, we created three specialized agents optimized for specific tasks. This allows for simpler prompts, better reliability, and easier debugging.
+
+**Dynamic Agent Creation**: Negotiation agents are created per-venue with event context injected into the system prompt. This ensures each negotiation has full context without complex state management.
+
+**Webhook-Driven Architecture**: Loose coupling between agents through webhooks enables independent scaling, easier testing, and clearer separation of concerns.
 
 ## Key Features
 
-- **Voice-First Interaction**: Natural language event specification through phone calls
-- **Intelligent Venue Discovery**: Multi-source data aggregation with AI-powered filtering
-- **Automated Negotiation**: Parallel venue outreach with strategic pricing discussions
-- **Cost Optimization**: Typically secures 10-15% savings through systematic negotiation
-- **Automated Delivery**: SMS summaries generated and sent without manual intervention
-- **Context Persistence**: MongoDB enables reliable state management across async operations
-- **Scalable Architecture**: Parallel agent execution handles multiple venues simultaneously
+- **Multi-Modal Interaction**: Combines voice calls for high-touch moments with email for research and follow-up
+- **Voice-First Collection**: Natural language event specification through conversational phone calls
+- **Intelligent Venue Discovery**: Multi-source data aggregation from Google Places and web search
+- **Automated Negotiation**: AI agent calls venues on behalf of customers to negotiate terms and pricing
+- **Email-Based Follow-Up**: Interactive email conversations for venue questions and negotiation requests
+- **Context Persistence**: Supabase PostgreSQL ensures reliable state management across async operations
+- **Dynamic Agent Creation**: Negotiation agents created on-demand with full event context
 
 ## Agent Configuration
 
-Each voice agent is configured through:
+### Voice Agents (VAPI)
+
+The Event Details and Negotiation agents are VAPI voice agents configured through:
 
 - `system_prompt.md`: Defines agent personality, behavior, and conversation flow
-- `tools.json`: Specifies function calling schemas and server endpoints
-- `assistant_config.json`: Configures voice, model, and transcription settings
-- `create_agent.py`: Scripts to deploy agents to Vapi platform
+- `tools.json`: Specifies function calling schemas and FastAPI server endpoints
+- `assistant_config.json`: Configures voice (Elliot), model (GPT-4o), and transcription (Deepgram Nova-3)
+- `create_vapi_agent.py`: Script to deploy agents to VAPI platform
 
-The system supports multiple specialized agents:
+Voice agent directories:
+- `event_details_agent/`: Customer-facing event collection via phone
+- `negotiation_agent/`: Venue outreach and negotiation via phone (dynamically created per venue)
 
-- `event_details_agent/`: Customer-facing event collection
-- `negotiation_agent/`: Venue outreach and negotiation
-- `venue_searching_agent/`: Web scraping and data extraction
-- `health_check_agent/`: System monitoring and diagnostics
+### Email Agent (LangChain)
+
+The Venue Searching agent is a LangChain-based email agent configured through:
+
+- `agent.py`: Defines LangChain tools and agent creation logic
+- `utils.py`: Helper functions for venue search, email generation, and negotiation triggering
+- `email_notification_system_prompt.md`: Template for initial venue recommendation emails
+- `email_response_system_prompt.md`: Instructions for responding to customer email inquiries
+
+Email agent directory:
+- `venue_searching_agent/`: Venue discovery and email-based customer interaction
